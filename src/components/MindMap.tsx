@@ -1,24 +1,26 @@
 import { useEffect, useRef, useState } from "react";
 import { useMindMap } from "../hooks/useMindMap";
 import { NODE_HEIGHT } from "../types/mindMapConst";
-import type { NodeType } from "../types/mindMapTypes";
+import type { NodeLayout } from "../types/mindMapTypes";
 import { CustomNode } from "./CustomNode";
 import { ContentPanel } from "./ContentPanel";
 
 const rootId = "root";
 
-const initialNodes: NodeType[] = [
+const initialNodes: NodeLayout[] = [
   {
-    id: rootId,
-    label: "Main Idea",
-    content:
-      "This is the central node. Double-click to edit the label, and use the button below to add child nodes.",
-    parentId: "",
     position: { x: 0, y: 0 }, // <-- required
-    height: NODE_HEIGHT,
     width: 200,
+    height: NODE_HEIGHT,
     combinedHeight: 50, // <-- required
-    onChange: () => {},
+    data: {
+      id: rootId,
+      parentId: "",
+      label: "Main Idea",
+      content:
+        "This is the central node. Double-click to edit the label, and use the button below to add child nodes.",
+      onChange: () => {},
+    },
   },
 ];
 
@@ -75,7 +77,7 @@ export default function MindMap() {
   const handleOpenNode = (nodeId: string) => setActiveNodeId(nodeId);
   const handleContentChange = (nodeId: string, content: string) => {
     setNodes((nds) =>
-      nds.map((n) => (n.id === nodeId ? { ...n, content } : n))
+      nds.map((n) => (n.data.id === nodeId ? { ...n, content } : n))
     );
   };
 
@@ -106,7 +108,7 @@ export default function MindMap() {
         }}
       />
 
-      <div style={{ flex: 1, position: "relative" }}>
+      <div style={{ flex: 1 }}>
         {/* 2. THE TRANSFORM LAYER: This div has no fixed width/height */}
         <div
           style={{
@@ -140,7 +142,7 @@ export default function MindMap() {
 
           {nodes.map((node) => (
             <div
-              key={node.id}
+              key={node.data.id}
               style={{
                 position: "absolute",
                 left: node.position.x,
@@ -148,15 +150,16 @@ export default function MindMap() {
               }}
             >
               <CustomNode
-                id={node.id}
-                data={{ label: node.label, onChange: node.onChange }}
-                position={{ x: 0, y: 0 }}
-                selected={selectedNodeId === node.id}
-                onSelect={setSelectedNodeId}
+                layout={node}
+                selected={selectedNodeId === node.data.id}
+                onSelect={(id) => {
+                  setSelectedNodeId(id); // keep existing selection
+                  console.log(node); // print the full node
+                }}
               />
               <div style={{ display: "flex", gap: 4, marginTop: 4 }}>
-                <button onClick={() => handleOpenNode(node.id)}>
-                  {node.content ? "👁️" : "➕"}
+                <button onClick={() => handleOpenNode(node.data.id)}>
+                  {node.data.content ? "👁️" : "➕"}
                 </button>
               </div>
             </div>
@@ -167,7 +170,7 @@ export default function MindMap() {
       {/* 2. THE UI LAYER (Panels & Controls) */}
       <div style={{ zIndex: 10, pointerEvents: "auto", height: "100%" }}>
         <ContentPanel
-          nodes={nodes}
+          nodes={nodes.map((node) => node.data)}
           activeNodeId={activeNodeId}
           onOpen={handleOpenNode}
           onChange={handleContentChange}

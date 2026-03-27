@@ -1,10 +1,20 @@
 import { useEffect, useRef, useState } from "react";
-import { CONTENT_NODE_WIDTH, NO_CONTENT_NODE_WIDTH, NODE_HEIGHT } from "../types/mindMapConst";
-import type { CustomNodeProps } from "../types/mindMapTypes";
+import {
+  CONTENT_NODE_WIDTH,
+  NO_CONTENT_NODE_WIDTH,
+  NODE_HEIGHT,
+} from "../types/mindMapConst";
+import type { NodeLayout } from "../types/mindMapTypes";
 
-export function CustomNode({ id, data, position, selected, onSelect }: CustomNodeProps) {
+export type NodeUIProps = {
+  selected: boolean;
+  onSelect: (id: string) => void;
+  layout: NodeLayout;
+};
+
+export function CustomNode({ layout, selected, onSelect }: NodeUIProps) {
   const [editing, setEditing] = useState<boolean>(false);
-  const [value, setValue] = useState<string>(data.label);
+  const [value, setValue] = useState<string>(layout.data.label);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
@@ -15,7 +25,7 @@ export function CustomNode({ id, data, position, selected, onSelect }: CustomNod
 
   const handleBlurOrEnter = () => {
     setEditing(false);
-    data.onChange?.(value, id);
+    layout.data.onChange?.(value, layout.data.id);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -24,15 +34,15 @@ export function CustomNode({ id, data, position, selected, onSelect }: CustomNod
 
   return (
     <div
-      onClick={() => onSelect?.(id)}
+      onClick={() => onSelect?.(layout.data.id)}
       onDoubleClick={() => setEditing(true)} // <-- double-click to edit
       style={{
         position: "absolute",
-        left: position.x,
-        top: position.y,
+        // left: layout.position.x,
+        // top: layout.position.y,
         padding: 10,
         height: NODE_HEIGHT,
-        width: data.content? CONTENT_NODE_WIDTH : NO_CONTENT_NODE_WIDTH,
+        width: layout.data.content ? CONTENT_NODE_WIDTH : NO_CONTENT_NODE_WIDTH,
         alignContent: "center",
         textAlign: "left",
         border: selected ? "2px solid blue" : "1px solid #ccc",

@@ -1,10 +1,18 @@
-import { HORIZONTAL_GAP, NODE_HEIGHT, VERTICAL_GAP } from "../types/mindMapConst";
-import type { NodeType } from "../types/mindMapTypes";
+import {
+  HORIZONTAL_GAP,
+  NODE_HEIGHT,
+  VERTICAL_GAP,
+} from "../types/mindMapConst";
+import type { NodeLayout } from "../types/mindMapTypes";
 
-export const layoutTree = (nodes: NodeType[], rootId: string): NodeType[] => {
-  const nodeMap = new Map(nodes.map((n) => [n.id, { ...n }]));
+export const layoutTree = (
+  nodes: NodeLayout[],
+  rootId: string
+): NodeLayout[] => {
+  const nodeMap = new Map(nodes.map((n) => [n.data.id, { ...n }]));
 
-  const getChildren = (id: string) => nodes.filter((n) => n.parentId === id);
+  const getChildren = (id: string) =>
+    nodes.filter((n) => n.data.parentId === id);
 
   // Recursively compute combinedHeight for each node
   const computeCombinedHeight = (nodeId: string): number => {
@@ -19,7 +27,7 @@ export const layoutTree = (nodes: NodeType[], rootId: string): NodeType[] => {
 
     let totalHeight = 0;
     children.forEach((child) => {
-      totalHeight += computeCombinedHeight(child.id) + VERTICAL_GAP;
+      totalHeight += computeCombinedHeight(child.data.id) + VERTICAL_GAP;
     });
 
     // Remove extra VERTICAL_GAP at bottom
@@ -41,8 +49,17 @@ export const layoutTree = (nodes: NodeType[], rootId: string): NodeType[] => {
     // Center parent above children
     if (children.length > 0) {
       const topY = yTop;
-      const bottomY = yTop + children.reduce((sum, c) => sum + (nodeMap.get(c.id)?.combinedHeight ?? 0) + VERTICAL_GAP, -VERTICAL_GAP);
-      node.position = { x: depth * HORIZONTAL_GAP, y: topY + (bottomY - topY - NODE_HEIGHT) / 2 };
+      const bottomY =
+        yTop +
+        children.reduce(
+          (sum, c) =>
+            sum + (nodeMap.get(c.data.id)?.combinedHeight ?? 0) + VERTICAL_GAP,
+          -VERTICAL_GAP
+        );
+      node.position = {
+        x: depth * HORIZONTAL_GAP,
+        y: topY + (bottomY - topY - NODE_HEIGHT) / 2,
+      };
     } else {
       node.position = { x: depth * HORIZONTAL_GAP, y: yTop };
     }
@@ -50,8 +67,8 @@ export const layoutTree = (nodes: NodeType[], rootId: string): NodeType[] => {
     // Position children stacked vertically
     let currentY = yTop;
     children.forEach((child) => {
-      const childNode = nodeMap.get(child.id)!;
-      positionNode(child.id, depth + 1, currentY);
+      const childNode = nodeMap.get(child.data.id)!;
+      positionNode(child.data.id, depth + 1, currentY);
       currentY += childNode.combinedHeight + VERTICAL_GAP;
     });
   };
