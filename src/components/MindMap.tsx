@@ -156,12 +156,8 @@ export default function MindMap() {
                   setSelectedNodeId(id); // keep existing selection
                   console.log(node); // print the full node
                 }}
+                handleOpenNode={handleOpenNode}
               />
-              <div style={{ display: "flex", gap: 4, marginTop: 4 }}>
-                <button onClick={() => handleOpenNode(node.data.id)}>
-                  {node.data.content ? "👁️" : "➕"}
-                </button>
-              </div>
             </div>
           ))}
         </div>

@@ -9,38 +9,50 @@ export const useMindMap = (initialNodes: NodeLayout[]) => {
   const [edges, setEdges] = useState<any[]>([]);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
 
+  // Helper to generate unique IDs
+  const generateId = () =>
+    `node-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+
   const handleNodeLabelChange = useCallback(
     (newLabel: string, nodeId: string) => {
-      setNodes((nds) =>
-        nds.map((n) =>
+      setNodes((nds) => {
+        const updated = nds.map((n) =>
           n.data.id === nodeId
-            ? { ...n, label: newLabel, onChange: handleNodeLabelChange }
+            ? { ...n, data: { ...n.data, label: newLabel } }
             : n
-        )
-      );
+        );
+        return updated;
+      });
     },
     []
   );
 
-  const getAllChildren = (nodes: NodeLayout[], parentId: string) => {
+  const getAllChildrenIds = (
+    nodes: NodeLayout[],
+    parentId: string
+  ): string[] => {
     const children = nodes.filter((n) => n.data.parentId === parentId);
-    let all: NodeLayout[] = [...children];
+    let ids = children.map((c) => c.data.id);
     children.forEach((c) => {
-      all = all.concat(getAllChildren(nodes, c.data.id));
+      ids = ids.concat(getAllChildrenIds(nodes, c.data.id));
     });
-    return all;
+    return ids;
   };
 
   const addChildNode = useCallback(() => {
     setNodes((nds) => {
-      const parentId = selectedNodeId || "root";
+      // 1. Determine parent (fallback to root if selection is missing or invalid)
+      const parentExists = nds.some((n) => n.data.id === selectedNodeId);
+      const parentId = parentExists ? (selectedNodeId as string) : "root";
+
+      // 2. Create the new node with a guaranteed UNIQUE ID
       const newNode: NodeLayout = {
         data: {
-          id: `${nds.length + 1}`,
+          id: generateId(),
           label: "New Node",
           content:
             "This is this node's content. Click the edit button to change it.",
-          parentId,
+          parentId: parentId,
           onChange: handleNodeLabelChange,
         },
         position: { x: 0, y: 0 },
@@ -48,10 +60,12 @@ export const useMindMap = (initialNodes: NodeLayout[]) => {
         width: 200,
         combinedHeight: 50,
       };
+
       const updatedNodes = [...nds, newNode];
+
+      // 3. Layout the new tree and update edges
       const laidOutNodes = layoutTree(updatedNodes, "root");
       setEdges(buildEdges(laidOutNodes));
-      console.log(updatedNodes);
       return laidOutNodes;
     });
   }, [selectedNodeId, handleNodeLabelChange]);
@@ -59,10 +73,23 @@ export const useMindMap = (initialNodes: NodeLayout[]) => {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement;
-      if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") return;
+      if (
+        target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA" ||
+        target.isContentEditable
+      )
+        return;
 
-      if (e.key.toLowerCase() === "n") addChildNode();
-      if (e.key.toLowerCase() === "e" && selectedNodeId) {
+      const key = e.key.toLowerCase();
+
+      // Add Node
+      if (key === "n") {
+        e.preventDefault();
+        addChildNode();
+      }
+
+      // Edit Trigger
+      if (key === "e" && selectedNodeId) {
         setNodes((nds) =>
           nds.map((n) =>
             n.data.id === selectedNodeId
@@ -72,14 +99,20 @@ export const useMindMap = (initialNodes: NodeLayout[]) => {
         );
       }
 
-      if ((e.key === "Delete" || e.key === "Del") && selectedNodeId) {
+      // Delete Node and its subtree
+      if (
+        (e.key === "Delete" || e.key === "Backspace") &&
+        selectedNodeId &&
+        selectedNodeId !== "root"
+      ) {
         setNodes((nds) => {
-          const toRemove = getAllChildren(nds, selectedNodeId)
-            .map((n) => n.data.id)
-            .concat(selectedNodeId);
+          const childrenToRemove = getAllChildrenIds(nds, selectedNodeId);
+          const toRemove = [...childrenToRemove, selectedNodeId];
+
           const remainingNodes = nds.filter(
             (n) => !toRemove.includes(n.data.id)
           );
+
           const laidOutNodes = layoutTree(remainingNodes, "root");
           setEdges(buildEdges(laidOutNodes));
           return laidOutNodes;
@@ -91,6 +124,15 @@ export const useMindMap = (initialNodes: NodeLayout[]) => {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [addChildNode, selectedNodeId]);
+
+  // Initial layout on mount
+  useEffect(() => {
+    if (nodes.length > 0 && edges.length === 0) {
+      const laidOut = layoutTree(nodes, "root");
+      setNodes(laidOut);
+      setEdges(buildEdges(laidOut));
+    }
+  }, []);
 
   return {
     nodes,

@@ -10,9 +10,17 @@ export type NodeUIProps = {
   selected: boolean;
   onSelect: (id: string) => void;
   layout: NodeLayout;
+  handleOpenNode: (id: string) => void;
 };
 
-export function CustomNode({ layout, selected, onSelect }: NodeUIProps) {
+// TODO: handle the button on the node
+
+export function CustomNode({
+  layout,
+  selected,
+  onSelect,
+  handleOpenNode,
+}: NodeUIProps) {
   const [editing, setEditing] = useState<boolean>(false);
   const [value, setValue] = useState<string>(layout.data.label);
   const inputRef = useRef<HTMLInputElement | null>(null);
