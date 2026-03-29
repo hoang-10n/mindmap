@@ -1,19 +1,17 @@
-import { useState, useRef } from "react";
-import type { NodeData } from "../types/mindMapTypes";
+import { useState, useRef, useEffect } from "react";
 import PanelNode from "./PanelNode";
+import { useMindMapStore } from "../store/useMindMapStore";
 
 type ContentPanelProps = {
-  openNodes: { [id: string]: NodeData };
-  activeNodeId: string | null; // node currently opened in the panel
-  handleChange: (nodeId: string, content: string) => void;
+  openNodes: { [id: string]: boolean };
 };
 
-export function ContentPanel({
-  openNodes,
-  handleChange: handleChange,
-}: ContentPanelProps) {
+export function ContentPanel({ openNodes }: ContentPanelProps) {
   const [width, setWidth] = useState(350);
   const isResizing = useRef(false);
+
+  // Pull nodes from store
+  const nodes = useMindMapStore((s) => s.nodes);
 
   const handleMouseDown = () => {
     isResizing.current = true;
@@ -23,6 +21,7 @@ export function ContentPanel({
     if (!isResizing.current) return;
 
     const newWidth = window.innerWidth - e.clientX;
+
     if (newWidth >= 350) {
       setWidth(newWidth);
     }
@@ -32,8 +31,7 @@ export function ContentPanel({
     isResizing.current = false;
   };
 
-  // Attach global listeners
-  useState(() => {
+  useEffect(() => {
     window.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("mouseup", handleMouseUp);
 
@@ -41,7 +39,7 @@ export function ContentPanel({
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
     };
-  });
+  }, []);
 
   return (
     <div
@@ -58,13 +56,14 @@ export function ContentPanel({
       <div className="flex-1 p-4 overflow-y-auto space-y-4">
         <h3 className="text-lg font-semibold">Node Contents</h3>
 
-        {Object.values(openNodes).map((node) => (
-          <PanelNode
-            key={node.id}
-            node={node}
-            onChange={handleChange}
-          />
-        ))}
+        {Object.entries(openNodes).map(([nodeId, isOpen]) =>
+          isOpen && nodes.find((n) => n.data.id === nodeId) ? (
+            <PanelNode
+              key={nodeId}
+              node={nodes.find((n) => n.data.id === nodeId)!.data}
+            />
+          ) : null
+        )}
       </div>
     </div>
   );

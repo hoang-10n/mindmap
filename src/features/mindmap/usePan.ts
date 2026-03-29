@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react";
+import { useMindMapStore } from "../../store/useMindMapStore";
 
 export function usePan() {
-  const [offset, setOffset] = useState({ x: 100, y: 100 });
+  const setOffset = useMindMapStore((s) => s.setOffset);
+
   const [dragging, setDragging] = useState(false);
   const lastPos = useRef({ x: 0, y: 0 });
 
@@ -22,10 +24,16 @@ export function usePan() {
   useEffect(() => {
     const handleMove = (e: MouseEvent) => {
       if (!dragging) return;
+
       const dx = e.clientX - lastPos.current.x;
       const dy = e.clientY - lastPos.current.y;
+
       lastPos.current = { x: e.clientX, y: e.clientY };
-      setOffset((o) => ({ x: o.x + dx, y: o.y + dy }));
+
+      setOffset((o) => ({
+        x: o.x + dx,
+        y: o.y + dy,
+      }));
     };
 
     const handleUp = () => setDragging(false);
@@ -37,7 +45,7 @@ export function usePan() {
       window.removeEventListener("mousemove", handleMove);
       window.removeEventListener("mouseup", handleUp);
     };
-  }, [dragging]);
+  }, [dragging, setOffset]);
 
-  return { offset, dragging, handleMouseDown };
+  return { handleMouseDown, dragging };
 }

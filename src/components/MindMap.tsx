@@ -1,9 +1,11 @@
-import { useRef, useState } from "react";
-import { useMindMap } from "../hooks/useMindMap";
+import { useRef, useState, useEffect } from "react";
 import type { NodeData, NodeLayout } from "../types/mindMapTypes";
+
 import { usePan } from "../features/mindmap/usePan";
 import { useZoom } from "../features/mindmap/useZoom";
-import { useImportExport } from "../features/mindmap/useImportExport";
+
+import { useMindMapStore } from "../store/useMindMapStore";
+
 import { Controls } from "./Control";
 import { Canvas } from "./Canvas";
 import { ContentPanel } from "./ContentPanel";
@@ -19,86 +21,79 @@ const initialNodes: NodeLayout[] = [
       parentId: "",
       label: "Main Idea",
       content: "Central node",
-      handleChange: () => { },
     },
   },
 ];
 
 export default function MindMap() {
-  const { nodes, edges, setNodes, selectedNodeId, setSelectedNodeId } =
-    useMindMap(initialNodes);
-
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // ✅ STORE
+  const setNodes = useMindMapStore((s) => s.setNodes);
+  const exportJSON = useMindMapStore((s) => s.exportJSON);
+  const importJSON = useMindMapStore((s) => s.importJSON);
+  const offset = useMindMapStore((s) => s.offset);
+
+  useEffect(() => {
+    setNodes(initialNodes);
+  }, [setNodes]);
 
   const pan = usePan();
   const zoom = useZoom(containerRef);
-  const io = useImportExport(nodes, setNodes);
 
   const [showContentPanel, setShowContentPanel] = useState(true);
 
-  const [openNodes, setOpenNodes] = useState<Record<string, NodeData>>({});
+  // open nodes in panel
+  const [openNodes, setOpenNodes] = useState<Record<string, boolean>>({});
 
   const handleToggleNode = (node: NodeData) => {
     setOpenNodes((prev) => {
       const next = { ...prev };
-
       const id = node.id;
 
       if (next[id]) {
-        delete next[id]; // remove
+        delete next[id];
       } else {
-        next[id] = node
+        next[id] = true;
       }
 
       return next;
     });
   };
 
-  const handleChange = (nodeId: string, content: string) => {
-    console.log("Updating node", nodeId, "with content:", content);
-    setNodes((nds: any[]) =>
-      nds.map((n) =>
-        n.data.id === nodeId ? { ...n, data: { ...n.data, content } } : n
-      )
-    );
-  };
-
   return (
     <div
       ref={containerRef}
       onMouseDown={pan.handleMouseDown}
-      className={`w-screen h-screen overflow-hidden flex relative bg-gray-100 ${pan.dragging ? "cursor-grabbing" : "cursor-grab"
-        }`}
+      className={`w-screen h-screen overflow-hidden flex relative bg-gray-100 ${
+        pan.dragging ? "cursor-grabbing" : "cursor-grab"
+      }`}
     >
       <Canvas
-        nodes={nodes}
-        edges={edges}
         zoom={zoom.zoom}
-        offset={pan.offset}
-        selectedNodeId={selectedNodeId}
-        setSelectedNodeId={setSelectedNodeId}
+        offset={offset}          // ✅ store-driven
         handleToggleNode={handleToggleNode}
         openNodes={openNodes}
       />
 
       <Controls
         zoom={zoom}
-        handleExport={io.handleExport}
-        handleImport={io.handleImport}
+        handleExport={exportJSON}
+        handleImport={(e: { target: { files: any[] } }) => {
+          const file = e.target.files?.[0];
+          if (file) importJSON(file);
+        }}
         showPanel={showContentPanel}
         togglePanel={() => setShowContentPanel((p) => !p)}
       />
 
       <div
         data-no-drag
-        className={`z-10 pointer-events-auto h-full min-w-80 transition-transform duration-300 ease-in-out ${showContentPanel ? "translate-x-0" : "translate-x-full"
-          }`}
+        className={`z-10 pointer-events-auto h-full min-w-80 transition-transform duration-300 ease-in-out ${
+          showContentPanel ? "translate-x-0" : "translate-x-full"
+        }`}
       >
-        <ContentPanel
-          openNodes={openNodes}
-          activeNodeId={selectedNodeId}
-          handleChange={handleChange}
-        />
+        <ContentPanel openNodes={openNodes} />
       </div>
     </div>
   );
