@@ -7,7 +7,8 @@ export function Canvas({
     offset,
     selectedNodeId,
     setSelectedNodeId,
-    onOpenNode,
+    handleToggleNode,
+    openNodes,
 }: any) {
     return (
         <>
@@ -49,7 +50,8 @@ export function Canvas({
                                 layout={node}
                                 selected={selectedNodeId === node.data.id}
                                 onSelect={setSelectedNodeId}
-                                handleOpenNode={onOpenNode}
+                                handleToggleNode={handleToggleNode}
+                                openNodes={openNodes}
                             />
                         </div>
                     ))}

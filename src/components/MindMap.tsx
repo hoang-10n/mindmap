@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { useMindMap } from "../hooks/useMindMap";
-import type { NodeLayout } from "../types/mindMapTypes";
+import type { NodeData, NodeLayout } from "../types/mindMapTypes";
 import { usePan } from "../features/mindmap/usePan";
 import { useZoom } from "../features/mindmap/useZoom";
 import { useImportExport } from "../features/mindmap/useImportExport";
@@ -19,7 +19,7 @@ const initialNodes: NodeLayout[] = [
       parentId: "",
       label: "Main Idea",
       content: "Central node",
-      onChange: () => { },
+      handleChange: () => { },
     },
   },
 ];
@@ -35,9 +35,24 @@ export default function MindMap() {
   const io = useImportExport(nodes, setNodes);
 
   const [showContentPanel, setShowContentPanel] = useState(true);
-  const [activeNodeId, setActiveNodeId] = useState<string | null>(null);
 
-  const handleOpenNode = (id: string) => setActiveNodeId(id);
+  const [openNodes, setOpenNodes] = useState<Record<string, NodeData>>({});
+
+  const handleToggleNode = (node: NodeData) => {
+    setOpenNodes((prev) => {
+      const next = { ...prev };
+
+      const id = node.id;
+
+      if (next[id]) {
+        delete next[id]; // remove
+      } else {
+        next[id] = node
+      }
+
+      return next;
+    });
+  };
 
   const handleChange = (nodeId: string, content: string) => {
     setNodes((nds: any[]) =>
@@ -61,28 +76,27 @@ export default function MindMap() {
         offset={pan.offset}
         selectedNodeId={selectedNodeId}
         setSelectedNodeId={setSelectedNodeId}
-        onOpenNode={handleOpenNode}
+        handleToggleNode={handleToggleNode}
+        openNodes={openNodes}
       />
 
       <Controls
         zoom={zoom}
-        onExport={io.handleExport}
-        onImport={io.handleImport}
+        handleExport={io.handleExport}
+        handleImport={io.handleImport}
         showPanel={showContentPanel}
         togglePanel={() => setShowContentPanel((p) => !p)}
       />
 
       <div
         data-no-drag
-        className={`z-10 pointer-events-auto h-full min-w-80 transition-transform duration-300 ease-in-out ${showContentPanel ? "translate-x-0" : "translate-x-full"}`}
+        className={`z-10 pointer-events-auto h-full min-w-80 transition-transform duration-300 ease-in-out ${showContentPanel ? "translate-x-0" : "translate-x-full"
+          }`}
       >
         <ContentPanel
-          activeNodeId={activeNodeId}
-          onOpen={handleOpenNode}
-          onChange={handleChange}
-          nodes={Object.fromEntries(
-            nodes.map(node => [node.data.id, node.data])
-          )}
+          openNodes={openNodes}
+          activeNodeId={selectedNodeId}
+          handleChange={handleChange}
         />
       </div>
     </div>

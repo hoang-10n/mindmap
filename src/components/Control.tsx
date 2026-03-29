@@ -7,8 +7,8 @@ import {
 
 export function Controls({
     zoom,
-    onExport,
-    onImport,
+    handleExport,
+    handleImport,
     showPanel,
     togglePanel,
 }: any) {
@@ -16,7 +16,7 @@ export function Controls({
 
       <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-white/90 px-4 py-2 rounded-lg shadow-md z-10">
         <button
-          onClick={onExport}
+          onClick={handleExport}
           className="px-2 py-1 text-sm bg-gray-100 rounded hover:bg-gray-200"
         >
           Export
@@ -27,7 +27,7 @@ export function Controls({
           <input
             type="file"
             accept="application/json"
-            onChange={onImport}
+            onChange={handleImport}
             className="hidden"
           />
         </label>

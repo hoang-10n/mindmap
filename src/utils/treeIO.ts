@@ -64,7 +64,7 @@ export const importTree = (tree: ExportNode): NodeLayout[] => {
         parentId: parentId || "",
         label: node.label,
         content: node.content || "",
-        onChange: () => { },
+        handleChange: () => { },
       },
     });
 

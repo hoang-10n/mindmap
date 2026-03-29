@@ -44,15 +44,17 @@ export const useMindMap = (initialNodes: NodeLayout[]) => {
       const parentExists = nds.some((n) => n.data.id === selectedNodeId);
       const parentId = parentExists ? (selectedNodeId as string) : "root";
 
+      const generateUniqueId = generateId();
+
       // 2. Create the new node with a guaranteed UNIQUE ID
       const newNode: NodeLayout = {
         data: {
-          id: generateId(),
-          label: "New Node",
+          id: generateUniqueId,
+          label: generateUniqueId,
           content:
             "This is this node's content. Click the edit button to change it.",
           parentId: parentId,
-          onChange: handleNodeLabelChange,
+          handleChange: handleNodeLabelChange,
         },
         position: { x: 0, y: 0 },
         combinedHeight: 50,

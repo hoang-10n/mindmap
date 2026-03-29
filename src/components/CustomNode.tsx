@@ -3,25 +3,29 @@ import {
   NODE_WIDTH,
   NODE_HEIGHT,
 } from "../types/mindMapConst";
-import type { NodeLayout } from "../types/mindMapTypes";
-import { EyeIcon } from "@heroicons/react/24/solid";
+import type { NodeData, NodeLayout } from "../types/mindMapTypes";
+import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/solid";
 
 export type NodeUIProps = {
   selected: boolean;
   onSelect: (id: string) => void;
   layout: NodeLayout;
-  handleOpenNode: (id: string) => void;
+  handleToggleNode: (node: NodeData) => void;
+  openNodes: Record<string, boolean>;
 };
 
 export function CustomNode({
   layout,
   selected,
   onSelect,
-  handleOpenNode,
+  handleToggleNode,
+  openNodes,
 }: NodeUIProps) {
   const [editing, setEditing] = useState<boolean>(false);
   const [value, setValue] = useState<string>(layout.data.label);
   const inputRef = useRef<HTMLInputElement | null>(null);
+
+  const isOpen = !!openNodes[layout.data.id];
 
   useEffect(() => {
     if (editing && inputRef.current) {
@@ -31,7 +35,7 @@ export function CustomNode({
 
   const handleBlurOrEnter = () => {
     setEditing(false);
-    layout.data.onChange?.(value, layout.data.id);
+    layout.data.handleChange?.(value, layout.data.id);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -45,7 +49,10 @@ export function CustomNode({
       className={`absolute flex items-center justify-between px-4
         rounded-md bg-white cursor-pointer select-none
         font-['Times_New_Roman',serif]
-        ${selected ? "border-2 border-blue-500" : "border border-gray-300"}
+        ${selected
+          ? "border-2 border-blue-500"
+          : "border border-gray-300"
+        }
         hover:border-blue-400`}
       style={{
         height: NODE_HEIGHT,
@@ -59,7 +66,7 @@ export function CustomNode({
           onChange={(e) => setValue(e.target.value)}
           onBlur={handleBlurOrEnter}
           onKeyDown={handleKeyDown}
-          className="flex-1 h-full bg-transparent outline-none border-b border-black text-sm font-['Times_New_Roman',serif]"
+          className="flex-1 h-[80%] bg-transparent outline-none border-b border-black text-sm font-['Times_New_Roman',serif] my-1"
         />
       ) : (
         <>
@@ -70,12 +77,20 @@ export function CustomNode({
           <button
             onClick={(e) => {
               e.stopPropagation();
-              handleOpenNode(layout.data.id);
+              handleToggleNode(layout.data);
             }}
             className="ml-3 p-1.5 rounded hover:bg-gray-100"
-            title="Open node"
+            title="Toggle node"
           >
-            <EyeIcon className="w-4 h-4 text-blue-500" />
+            {isOpen ? (
+              <EyeSlashIcon
+                className="w-4 h-4 text-gray-400"
+              />
+            ) : (
+              <EyeIcon
+                className="w-4 h-4 text-blue-500"
+              />
+            )}
           </button>
         </>
       )}
