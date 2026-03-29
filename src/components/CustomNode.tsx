@@ -5,6 +5,7 @@ import {
   NODE_HEIGHT,
 } from "../types/mindMapConst";
 import type { NodeLayout } from "../types/mindMapTypes";
+import { EyeIcon } from "@heroicons/react/24/solid";
 
 export type NodeUIProps = {
   selected: boolean;
@@ -12,8 +13,6 @@ export type NodeUIProps = {
   layout: NodeLayout;
   handleOpenNode: (id: string) => void;
 };
-
-// TODO: handle the button on the node
 
 export function CustomNode({
   layout,
@@ -43,21 +42,17 @@ export function CustomNode({
   return (
     <div
       onClick={() => onSelect?.(layout.data.id)}
-      onDoubleClick={() => setEditing(true)} // <-- double-click to edit
+      onDoubleClick={() => setEditing(true)}
+      className={`absolute flex items-center justify-between px-4
+        rounded-md bg-white cursor-pointer select-none
+        font-['Times_New_Roman',serif]
+        ${selected ? "border-2 border-blue-500" : "border border-gray-300"}
+        hover:border-blue-400`}
       style={{
-        position: "absolute",
-        // left: layout.position.x,
-        // top: layout.position.y,
-        padding: 10,
         height: NODE_HEIGHT,
-        width: layout.data.content ? CONTENT_NODE_WIDTH : NO_CONTENT_NODE_WIDTH,
-        alignContent: "center",
-        textAlign: "left",
-        border: selected ? "2px solid blue" : "1px solid #ccc",
-        borderRadius: 6,
-        background: "white",
-        cursor: "pointer",
-        userSelect: "none",
+        width: layout.data.content
+          ? CONTENT_NODE_WIDTH
+          : NO_CONTENT_NODE_WIDTH,
       }}
     >
       {editing ? (
@@ -67,17 +62,25 @@ export function CustomNode({
           onChange={(e) => setValue(e.target.value)}
           onBlur={handleBlurOrEnter}
           onKeyDown={handleKeyDown}
-          style={{
-            width: "100%",
-            height: "100%",
-            border: "none",
-            borderBottom: "1px solid red",
-            outline: "none",
-            boxSizing: "border-box",
-          }}
+          className="flex-1 h-full bg-transparent outline-none border-b border-black text-sm font-['Times_New_Roman',serif]"
         />
       ) : (
-        value
+        <>
+          <span className="flex-1 truncate text-sm">
+            {value}
+          </span>
+
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleOpenNode(layout.data.id);
+            }}
+            className="ml-3 p-1.5 rounded hover:bg-gray-100"
+            title="Open node"
+          >
+            <EyeIcon className="w-4 h-4 text-blue-500" />
+          </button>
+        </>
       )}
     </div>
   );

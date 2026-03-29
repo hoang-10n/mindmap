@@ -1,3 +1,5 @@
+import { useState, useRef } from "react";
+import { EyeIcon, PlusIcon } from "@heroicons/react/16/solid";
 import type { ContentPanelProps } from "../types/mindMapTypes";
 
 export function ContentPanel({
@@ -6,45 +8,77 @@ export function ContentPanel({
   onOpen,
   onChange,
 }: ContentPanelProps) {
+  const [width, setWidth] = useState(350);
+  const isResizing = useRef(false);
+
+  const handleMouseDown = () => {
+    isResizing.current = true;
+  };
+
+  const handleMouseMove = (e: MouseEvent) => {
+    if (!isResizing.current) return;
+
+    const newWidth = window.innerWidth - e.clientX;
+    if (newWidth >= 350) {
+      setWidth(newWidth);
+    }
+  };
+
+  const handleMouseUp = () => {
+    isResizing.current = false;
+  };
+
+  // Attach global listeners
+  useState(() => {
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  });
+
   return (
     <div
-      style={{
-        width: "350px",
-        height: "100%",
-        borderLeft: "1px solid #ccc",
-        background: "#f9f9f9",
-        padding: 16,
-        overflowY: "auto",
-        flexShrink: 0,
-      }}
+      className="h-full border-l border-gray-300 bg-gray-50 flex shrink-0"
+      style={{ width }}
     >
-      <h3>Node Contents</h3>
+      {/* Drag handle */}
+      <div
+        onMouseDown={handleMouseDown}
+        className="w-1 cursor-col-resize bg-gray-300 hover:bg-blue-400"
+      />
 
-      {nodes.map((node) => (
-        <div key={node.id} style={{ marginBottom: 16 }}>
-          {/* Only show button if node has content or allow new */}
-          {(node.content || true) && (
-            <button style={{ marginBottom: 4 }} onClick={() => onOpen(node.id)}>
-              {node.content ? "👁️" : "➕"} {node.label}
+      {/* Panel content */}
+      <div className="flex-1 p-4 overflow-y-auto">
+        <h3 className="text-lg font-semibold mb-4">Node Contents</h3>
+
+        {nodes.map((node) => (
+          <div key={node.id} className="mb-4">
+            <button
+              onClick={() => onOpen(node.id)}
+              className="flex items-center gap-2 mb-1 text-left hover:text-blue-600"
+            >
+              {node.content ? (
+                <EyeIcon className="w-5 h-5 text-blue-500" />
+              ) : (
+                <PlusIcon className="w-5 h-5 text-blue-500" />
+              )}
+              <span>{node.label}</span>
             </button>
-          )}
 
-          {/* Show content block if active */}
-          {activeNodeId === node.id && (
-            <textarea
-              value={node.content || ""}
-              onChange={(e) => onChange(node.id, e.target.value)}
-              style={{
-                width: "100%",
-                height: 120,
-                resize: "vertical",
-                boxSizing: "border-box",
-              }}
-              autoFocus
-            />
-          )}
-        </div>
-      ))}
+            {activeNodeId === node.id && (
+              <textarea
+                value={node.content || ""}
+                onChange={(e) => onChange(node.id, e.target.value)}
+                autoFocus
+                className="w-full min-h-30 resize-y border border-gray-300 rounded p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            )}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

@@ -24,11 +24,11 @@ export const buildEdges = (nodes: NodeLayout[]): EdgeType[] => {
       target: node.data.id,
       sourcePosition: {
         x: parent.position.x + NO_CONTENT_NODE_WIDTH, // node width
-        y: parent.position.y + NODE_HEIGHT / 2 + 10, // vertical middle approx
+        y: parent.position.y + NODE_HEIGHT / 2, // vertical middle approx
       },
       targetPosition: {
         x: node.position.x,
-        y: node.position.y + NODE_HEIGHT / 2 + 10, // vertical middle approx
+        y: node.position.y + NODE_HEIGHT / 2, // vertical middle approx
       },
     });
   });

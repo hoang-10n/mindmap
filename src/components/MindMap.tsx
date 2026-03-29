@@ -4,15 +4,16 @@ import { NODE_HEIGHT } from "../types/mindMapConst";
 import type { NodeLayout } from "../types/mindMapTypes";
 import { CustomNode } from "./CustomNode";
 import { ContentPanel } from "./ContentPanel";
+import { MinusIcon, PlusIcon } from "@heroicons/react/16/solid";
 
 const rootId = "root";
 
 const initialNodes: NodeLayout[] = [
   {
-    position: { x: 0, y: 0 }, // <-- required
+    position: { x: 0, y: 0 },
     width: 200,
     height: NODE_HEIGHT,
-    combinedHeight: 50, // <-- required
+    combinedHeight: 50,
     data: {
       id: rootId,
       parentId: "",
@@ -33,13 +34,14 @@ export default function MindMap() {
   const [dragging, setDragging] = useState(false);
   const lastPos = useRef({ x: 0, y: 0 });
 
-  const [activeNodeId, setActiveNodeId] = useState<string | null>(null); // node currently expanded in panel
+  const [activeNodeId, setActiveNodeId] = useState<string | null>(null);
 
-  // Pan handlers
+  // Pan
   const handleMouseDown = (e: React.MouseEvent) => {
     setDragging(true);
     lastPos.current = { x: e.clientX, y: e.clientY };
   };
+
   const handleMouseMove = (e: MouseEvent) => {
     if (!dragging) return;
     const dx = e.clientX - lastPos.current.x;
@@ -47,6 +49,7 @@ export default function MindMap() {
     lastPos.current = { x: e.clientX, y: e.clientY };
     setOffset((o) => ({ x: o.x + dx, y: o.y + dy }));
   };
+
   const handleMouseUp = () => setDragging(false);
 
   useEffect(() => {
@@ -58,7 +61,7 @@ export default function MindMap() {
     };
   }, [dragging]);
 
-  // Zoom handlers
+  // Zoom
   const containerRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const handleWheel = (e: WheelEvent) => {
@@ -66,15 +69,19 @@ export default function MindMap() {
       const delta = e.deltaY < 0 ? 0.1 : -0.1;
       setZoom((z) => Math.min(Math.max(z + delta, 0.2), 3));
     };
+
     const container = containerRef.current;
-    if (container)
+    if (container) {
       container.addEventListener("wheel", handleWheel, { passive: false });
+    }
+
     return () => {
       if (container) container.removeEventListener("wheel", handleWheel);
     };
   }, []);
 
   const handleOpenNode = (nodeId: string) => setActiveNodeId(nodeId);
+
   const handleContentChange = (nodeId: string, content: string) => {
     setNodes((nds) =>
       nds.map((n) => (n.data.id === nodeId ? { ...n, content } : n))
@@ -85,48 +92,29 @@ export default function MindMap() {
     <div
       ref={containerRef}
       onMouseDown={handleMouseDown}
-      style={{
-        width: "100vw",
-        height: "100vh",
-        overflow: "hidden",
-        cursor: dragging ? "grabbing" : "grab",
-        background: "#f0f0f0", // The "void" color
-        display: "flex",
-        position: "relative",
-      }}
+      className={`w-screen h-screen overflow-hidden flex relative bg-gray-100 ${
+        dragging ? "cursor-grabbing" : "cursor-grab"
+      }`}
     >
-      {/* 1. THE GRID LAYER: Moves with the offset to give the illusion of infinity */}
+      {/* Grid layer */}
       <div
+        className="absolute inset-0 pointer-events-none overflow-hidden z-1"
         style={{
-          position: "absolute",
-          inset: 0,
-          pointerEvents: "none",
-          overflow: "hidden",
-          zIndex: 1,
           backgroundSize: `${20 * zoom}px ${20 * zoom}px`,
           backgroundPosition: `${offset.x}px ${offset.y}px`,
         }}
       />
 
-      <div style={{ flex: 1 }}>
-        {/* 2. THE TRANSFORM LAYER: This div has no fixed width/height */}
+      {/* Canvas */}
+      <div className="flex-1">
         <div
+          className="absolute top-0 left-0 origin-top-left"
           style={{
             transform: `translate(${offset.x}px, ${offset.y}px) scale(${zoom})`,
-            transformOrigin: "0 0",
-            position: "absolute",
-            top: 0,
-            left: 0,
           }}
         >
-          {/* 3. THE SVG LAYER: Set overflow to visible so lines aren't clipped */}
-          <svg
-            style={{
-              position: "absolute",
-              overflow: "visible",
-              pointerEvents: "none",
-            }}
-          >
+          {/* Edges */}
+          <svg className="absolute overflow-visible pointer-events-none">
             {edges.map((edge) => (
               <line
                 key={edge.id}
@@ -135,16 +123,17 @@ export default function MindMap() {
                 x2={edge.targetPosition.x}
                 y2={edge.targetPosition.y}
                 stroke="#999"
-                strokeWidth={2 / zoom} // Keep lines crisp when zooming
+                strokeWidth={2 / zoom}
               />
             ))}
           </svg>
 
+          {/* Nodes */}
           {nodes.map((node) => (
             <div
               key={node.data.id}
+              className="absolute"
               style={{
-                position: "absolute",
                 left: node.position.x,
                 top: node.position.y,
               }}
@@ -153,8 +142,8 @@ export default function MindMap() {
                 layout={node}
                 selected={selectedNodeId === node.data.id}
                 onSelect={(id) => {
-                  setSelectedNodeId(id); // keep existing selection
-                  console.log(node); // print the full node
+                  setSelectedNodeId(id);
+                  console.log(node);
                 }}
                 handleOpenNode={handleOpenNode}
               />
@@ -163,8 +152,8 @@ export default function MindMap() {
         </div>
       </div>
 
-      {/* 2. THE UI LAYER (Panels & Controls) */}
-      <div style={{ zIndex: 10, pointerEvents: "auto", height: "100%" }}>
+      {/* Right panel */}
+      <div className="z-10 pointer-events-auto h-full">
         <ContentPanel
           nodes={nodes.map((node) => node.data)}
           activeNodeId={activeNodeId}
@@ -174,26 +163,24 @@ export default function MindMap() {
       </div>
 
       {/* Zoom controls */}
-      <div
-        style={{
-          position: "absolute",
-          bottom: 20,
-          left: "50%",
-          transform: "translateX(-50%)",
-          display: "flex",
-          gap: 10,
-          background: "rgba(255,255,255,0.9)",
-          padding: "8px 16px",
-          borderRadius: 8,
-          boxShadow: "0 2px 6px rgba(0,0,0,0.2)",
-          zIndex: 10,
-        }}
-      >
-        <button onClick={() => setZoom((z) => Math.max(z - 0.1, 0.2))}>
-          -
+      <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-white/90 px-4 py-2 rounded-lg shadow-md z-10">
+        <button
+          onClick={() => setZoom((z) => Math.max(z - 0.1, 0.2))}
+          className="p-1 hover:bg-gray-100 rounded"
+        >
+          <MinusIcon className="w-4 h-4" />
         </button>
-        <span>{Math.round(zoom * 100)}%</span>
-        <button onClick={() => setZoom((z) => Math.min(z + 0.1, 3))}>+</button>
+
+        <span className="text-sm font-medium">
+          {Math.round(zoom * 100)}%
+        </span>
+
+        <button
+          onClick={() => setZoom((z) => Math.min(z + 0.1, 3))}
+          className="p-1 hover:bg-gray-100 rounded"
+        >
+          <PlusIcon className="w-4 h-4" />
+        </button>
       </div>
     </div>
   );
