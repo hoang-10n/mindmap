@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
 export function usePan() {
-  const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const [offset, setOffset] = useState({ x: 100, y: 100 });
   const [dragging, setDragging] = useState(false);
   const lastPos = useRef({ x: 0, y: 0 });
 
