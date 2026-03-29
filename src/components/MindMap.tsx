@@ -4,7 +4,8 @@ import { NODE_HEIGHT } from "../types/mindMapConst";
 import type { NodeLayout } from "../types/mindMapTypes";
 import { CustomNode } from "./CustomNode";
 import { ContentPanel } from "./ContentPanel";
-import { MinusIcon, PlusIcon } from "@heroicons/react/16/solid";
+import { ChevronLeftIcon, ChevronRightIcon, MinusIcon, PlusIcon } from "@heroicons/react/16/solid";
+import { exportTree, importTree } from "../utils/treeIO";
 
 const rootId = "root";
 
@@ -20,7 +21,7 @@ const initialNodes: NodeLayout[] = [
       label: "Main Idea",
       content:
         "This is the central node. Double-click to edit the label, and use the button below to add child nodes.",
-      onChange: () => {},
+      onChange: () => { },
     },
   },
 ];
@@ -30,6 +31,7 @@ export default function MindMap() {
     useMindMap(initialNodes);
 
   const [zoom, setZoom] = useState(1);
+  const [showContentPanel, setShowContentPanel] = useState(true);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [dragging, setDragging] = useState(false);
   const lastPos = useRef({ x: 0, y: 0 });
@@ -38,6 +40,17 @@ export default function MindMap() {
 
   // Pan
   const handleMouseDown = (e: React.MouseEvent) => {
+    const target = e.target as HTMLElement;
+
+    if (
+      target.closest("button") ||
+      target.closest("input") ||
+      target.closest("textarea") ||
+      target.closest("[data-no-drag]")
+    ) {
+      return;
+    }
+
     setDragging(true);
     lastPos.current = { x: e.clientX, y: e.clientY };
   };
@@ -51,6 +64,42 @@ export default function MindMap() {
   };
 
   const handleMouseUp = () => setDragging(false);
+
+  const handleExport = () => {
+    const tree = exportTree(nodes);
+
+    if (!tree) return;
+
+    const blob = new Blob([JSON.stringify(tree, null, 2)], {
+      type: "application/json",
+    });
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "mindmap.json";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+
+    reader.onload = (event) => {
+      try {
+        const json = JSON.parse(event.target?.result as string);
+        const newNodes = importTree(json);
+        setNodes(newNodes);
+      } catch (err) {
+        console.error("Invalid JSON file");
+      }
+    };
+
+    reader.readAsText(file);
+  };
 
   useEffect(() => {
     window.addEventListener("mousemove", handleMouseMove);
@@ -92,9 +141,8 @@ export default function MindMap() {
     <div
       ref={containerRef}
       onMouseDown={handleMouseDown}
-      className={`w-screen h-screen overflow-hidden flex relative bg-gray-100 ${
-        dragging ? "cursor-grabbing" : "cursor-grab"
-      }`}
+      className={`w-screen h-screen overflow-hidden flex relative bg-gray-100 ${dragging ? "cursor-grabbing" : "cursor-grab"
+        }`}
     >
       {/* Grid layer */}
       <div
@@ -153,7 +201,11 @@ export default function MindMap() {
       </div>
 
       {/* Right panel */}
-      <div className="z-10 pointer-events-auto h-full">
+      <div
+        data-no-drag
+        className={`z-10 pointer-events-auto h-full min-w-80 transition-transform duration-300 ease-in-out ${showContentPanel ? "translate-x-0" : "translate-x-full"
+          }`}
+      >
         <ContentPanel
           nodes={nodes.map((node) => node.data)}
           activeNodeId={activeNodeId}
@@ -164,6 +216,41 @@ export default function MindMap() {
 
       {/* Zoom controls */}
       <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-white/90 px-4 py-2 rounded-lg shadow-md z-10">
+        <button
+          onClick={handleExport}
+          className="px-2 py-1 text-sm bg-gray-100 rounded hover:bg-gray-200"
+        >
+          Export
+        </button>
+
+        <label className="px-2 py-1 text-sm bg-gray-100 rounded hover:bg-gray-200 cursor-pointer">
+          Import
+          <input
+            type="file"
+            accept="application/json"
+            onChange={handleImport}
+            className="hidden"
+          />
+        </label>
+
+
+        {/* Toggle panel icon */}
+        <button
+          onClick={() => setShowContentPanel((prev) => !prev)}
+          className="p-1 hover:bg-gray-100 rounded transition"
+          title={showContentPanel ? "Hide panel" : "Show panel"}
+        >
+          {showContentPanel ? (
+            <ChevronRightIcon className="w-4 h-4" />
+          ) : (
+            <ChevronLeftIcon className="w-4 h-4" />
+          )}
+        </button>
+
+        {/* Divider */}
+        <div className="w-px h-5 bg-gray-300 mx-1" />
+
+        {/* Zoom controls */}
         <button
           onClick={() => setZoom((z) => Math.max(z - 0.1, 0.2))}
           className="p-1 hover:bg-gray-100 rounded"
@@ -181,6 +268,7 @@ export default function MindMap() {
         >
           <PlusIcon className="w-4 h-4" />
         </button>
+
       </div>
     </div>
   );
