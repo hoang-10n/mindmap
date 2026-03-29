@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import {
-  CONTENT_NODE_WIDTH,
-  NO_CONTENT_NODE_WIDTH,
+  NODE_WIDTH,
   NODE_HEIGHT,
 } from "../types/mindMapConst";
 import type { NodeLayout } from "../types/mindMapTypes";
@@ -50,9 +49,7 @@ export function CustomNode({
         hover:border-blue-400`}
       style={{
         height: NODE_HEIGHT,
-        width: layout.data.content
-          ? CONTENT_NODE_WIDTH
-          : NO_CONTENT_NODE_WIDTH,
+        width: NODE_WIDTH,
       }}
     >
       {editing ? (

@@ -54,7 +54,7 @@ export function ContentPanel({
       <div className="flex-1 p-4 overflow-y-auto">
         <h3 className="text-lg font-semibold mb-4">Node Contents</h3>
 
-        {nodes.map((node) => (
+        {Object.values(nodes).map((node) => (
           <div key={node.id} className="mb-4">
             <button
               onClick={() => onOpen(node.id)}

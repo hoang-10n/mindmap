@@ -1,4 +1,4 @@
-import { NO_CONTENT_NODE_WIDTH, NODE_HEIGHT } from "../types/mindMapConst";
+import {NODE_WIDTH, NODE_HEIGHT } from "../types/mindMapConst";
 import type { NodeLayout } from "../types/mindMapTypes";
 
 export type EdgeType = {
@@ -23,7 +23,7 @@ export const buildEdges = (nodes: NodeLayout[]): EdgeType[] => {
       source: parent.data.id,
       target: node.data.id,
       sourcePosition: {
-        x: parent.position.x + NO_CONTENT_NODE_WIDTH, // node width
+        x: parent.position.x + NODE_WIDTH, // node width
         y: parent.position.y + NODE_HEIGHT / 2, // vertical middle approx
       },
       targetPosition: {

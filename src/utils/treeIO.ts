@@ -58,15 +58,13 @@ export const importTree = (tree: ExportNode): NodeLayout[] => {
 
     result.push({
       position: { x: depth * 300, y: index * 80 }, // basic layout
-      width: 200,
-      height: NODE_HEIGHT,
       combinedHeight: NODE_HEIGHT,
       data: {
         id,
         parentId: parentId || "",
         label: node.label,
         content: node.content || "",
-        onChange: () => {},
+        onChange: () => { },
       },
     });
 

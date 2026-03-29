@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState } from "react";
 import { layoutTree } from "../utils/layout";
 import { buildEdges } from "../utils/edges";
 import type { NodeLayout } from "../types/mindMapTypes";
-import { NODE_HEIGHT } from "../types/mindMapConst";
 
 export const useMindMap = (initialNodes: NodeLayout[]) => {
   const [nodes, setNodes] = useState<NodeLayout[]>(initialNodes);
@@ -56,8 +55,6 @@ export const useMindMap = (initialNodes: NodeLayout[]) => {
           onChange: handleNodeLabelChange,
         },
         position: { x: 0, y: 0 },
-        height: NODE_HEIGHT,
-        width: 200,
         combinedHeight: 50,
       };
 
