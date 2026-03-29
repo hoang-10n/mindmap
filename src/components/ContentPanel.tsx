@@ -55,8 +55,8 @@ export function ContentPanel({
       />
 
       {/* Panel content */}
-      <div className="flex-1 p-4 overflow-y-auto">
-        <h3 className="text-lg font-semibold mb-4">Node Contents</h3>
+      <div className="flex-1 p-4 overflow-y-auto space-y-4">
+        <h3 className="text-lg font-semibold">Node Contents</h3>
 
         {Object.values(openNodes).map((node) => (
           <PanelNode

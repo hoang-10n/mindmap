@@ -193,3 +193,7 @@ body,
   padding: 0;
   overflow: hidden;
 }
+
+.markdown > * {
+  all: revert;
+}

@@ -55,9 +55,10 @@ export default function MindMap() {
   };
 
   const handleChange = (nodeId: string, content: string) => {
+    console.log("Updating node", nodeId, "with content:", content);
     setNodes((nds: any[]) =>
       nds.map((n) =>
-        n.data.id === nodeId ? { ...n, content } : n
+        n.data.id === nodeId ? { ...n, data: { ...n.data, content } } : n
       )
     );
   };
