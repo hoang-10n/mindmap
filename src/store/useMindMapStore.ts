@@ -66,7 +66,7 @@ export const useMindMapStore = create<Store>((set, get) => ({
         const newNode: NodeLayout = {
             data: {
                 id,
-                label: "New Node",
+                label: id,
                 content: "",
                 parentId,
             },

@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, use } from "react";
 import type { NodeData, NodeLayout } from "../types/mindMapTypes";
 
 import { usePan } from "../features/mindmap/usePan";
@@ -9,6 +9,7 @@ import { useMindMapStore } from "../store/useMindMapStore";
 import { Controls } from "./Control";
 import { Canvas } from "./Canvas";
 import { ContentPanel } from "./ContentPanel";
+import { useMindMapShortcuts } from "../features/mindmap/useMindMapShortcut";
 
 const rootId = "root";
 
@@ -27,6 +28,8 @@ const initialNodes: NodeLayout[] = [
 
 export default function MindMap() {
   const containerRef = useRef<HTMLDivElement>(null);
+
+  useMindMapShortcuts();
 
   // ✅ STORE
   const setNodes = useMindMapStore((s) => s.setNodes);

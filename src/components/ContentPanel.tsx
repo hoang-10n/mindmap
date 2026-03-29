@@ -54,7 +54,7 @@ export function ContentPanel({ openNodes }: ContentPanelProps) {
 
       {/* Panel content */}
       <div className="flex-1 p-4 overflow-y-auto space-y-4">
-        <h3 className="text-lg font-semibold">Node Contents</h3>
+        {/* <h3 className="text-lg font-semibold">Node Contents</h3> */}
 
         {Object.entries(openNodes).map(([nodeId, isOpen]) =>
           isOpen && nodes.find((n) => n.data.id === nodeId) ? (
