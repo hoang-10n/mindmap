@@ -9,12 +9,7 @@ interface Props {
   openNodes: Record<string, boolean>;
 }
 
-export function Canvas({
-  zoom,
-  offset,
-  handleToggleNode,
-  openNodes,
-}: Props) {
+export function Canvas({ zoom, offset, handleToggleNode, openNodes }: Props) {
   // ✅ pull from store
   const storeNodes = useMindMapStore((s) => s.nodes);
   const storeEdges = useMindMapStore((s) => s.edges);
@@ -68,7 +63,7 @@ export function Canvas({
               <CustomNode
                 layout={node}
                 selected={selectedNodeIdStore === node.data.id}
-                onSelect={setSelectedNodeIdStore}
+                handleSelect={setSelectedNodeIdStore}
                 handleToggleNode={handleToggleNode}
                 openNodes={openNodes}
               />
