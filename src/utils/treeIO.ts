@@ -64,13 +64,12 @@ export const importTree = (tree: ExportNode): NodeLayout[] => {
         parentId: parentId || "",
         label: node.label,
         content: node.content || "",
-        handleChange: () => { },
+        handleChange: () => {},
       },
+      hidden: false,
     });
 
-    node.children?.forEach((child) =>
-      traverse(child, id, depth + 1)
-    );
+    node.children?.forEach((child) => traverse(child, id, depth + 1));
   };
 
   traverse(tree, undefined, 0);

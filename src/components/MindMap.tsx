@@ -23,6 +23,7 @@ const initialNodes: NodeLayout[] = [
       label: "Main Idea",
       content: "Central node",
     },
+    hidden: false,
   },
 ];
 
@@ -49,6 +50,7 @@ export default function MindMap() {
   // open nodes in panel
   const [openNodes, setOpenNodes] = useState<Record<string, boolean>>({});
 
+  // TODO: Move this to store
   const handleToggleNode = (node: NodeData) => {
     setOpenNodes((prev) => {
       const next = { ...prev };
@@ -74,7 +76,7 @@ export default function MindMap() {
     >
       <Canvas
         zoom={zoom.zoom}
-        offset={offset}          // ✅ store-driven
+        offset={offset} // ✅ store-driven
         handleToggleNode={handleToggleNode}
         openNodes={openNodes}
       />

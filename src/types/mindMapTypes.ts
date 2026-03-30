@@ -10,4 +10,5 @@ export type NodeLayout = {
   data: NodeData;
   position: { x: number; y: number };
   combinedHeight: number;
+  hidden: boolean;
 };

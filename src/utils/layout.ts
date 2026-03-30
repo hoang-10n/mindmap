@@ -9,10 +9,12 @@ export const layoutTree = (
   nodes: NodeLayout[],
   rootId: string
 ): NodeLayout[] => {
-  const nodeMap = new Map(nodes.map((n) => [n.data.id, { ...n }]));
+  const visibleNodes = nodes.filter((n) => !n.hidden);
+
+  const nodeMap = new Map(visibleNodes.map((n) => [n.data.id, { ...n }]));
 
   const getChildren = (id: string) =>
-    nodes.filter((n) => n.data.parentId === id);
+    visibleNodes.filter((n) => n.data.parentId === id && !n.hidden);
 
   // Recursively compute combinedHeight for each node
   const computeCombinedHeight = (nodeId: string): number => {
